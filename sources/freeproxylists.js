@@ -208,37 +208,41 @@ var Source = module.exports = {
 			}
 
 			var proxies = [];
-			var $ = cheerio.load(result.root.quote[0]);
+			try {
+				var $ = cheerio.load(result.root.quote[0]);
 
-			$('table tr').each(function(index, tr) {
+				$('table tr').each(function(index, tr) {
 
-				if (index > 1) {
+					if (index > 1) {
 
-					// Data starts at the 3rd row.
+						// Data starts at the 3rd row.
 
-					var countryName = $('td', tr).eq(5).text().toString();
-					var countryCode = countryNameToCode[countryName] || null;
+						var countryName = $('td', tr).eq(5).text().toString();
+						var countryCode = countryNameToCode[countryName] || null;
 
-					if (countryCode) {
+						if (countryCode) {
 
-						var protocol = list.protocol;
+							var protocol = list.protocol;
 
-						if (!protocol) {
-							protocol = $('td', tr).eq(2).text().toString() === 'true' ? 'https' : 'http';
+							if (!protocol) {
+								protocol = $('td', tr).eq(2).text().toString() === 'true' ? 'https' : 'http';
+							}
+
+							proxies.push({
+								ipAddress: $('td', tr).eq(0).text().toString(),
+								port: parseInt($('td', tr).eq(1).text().toString()),
+								protocols: [protocol],
+								country: countryCode,
+								anonymityLevel: list.anonymityLevel
+							});
 						}
-
-						proxies.push({
-							ipAddress: $('td', tr).eq(0).text().toString(),
-							port: parseInt($('td', tr).eq(1).text().toString()),
-							protocols: [protocol],
-							country: countryCode,
-							anonymityLevel: list.anonymityLevel
-						});
 					}
-				}
-			});
+				});
+				cb(null, proxies);
 
-			cb(null, proxies);
+			} catch(error) {
+				cb(error);
+			}
 		});
 	},
 
